@@ -9,7 +9,7 @@ import {
   propagateNetworkChangeFirewalls,
   propagateNetworkChangeDataservices,
   propagateNetworkChangeCredentials,
-  renameComputer
+  renameComputer,
 } from '../utils/graphHelpers';
 
 // Define basic types for this component
@@ -1025,56 +1025,57 @@ const ComputerDrawerPanel: React.FC<Props> = ({
                     <div className={styles.actions}>
                         <button onClick={() => {
                             if (selectedComputer) {
-                                let updatedGraph = graphData;
-                                let finalId = selectedComputer.id;
-
-                                if (localId !== selectedComputer.id) {
-                                    updatedGraph = renameComputer(updatedGraph, selectedComputer.id, localId);
-                                    finalId = localId;
-                                }
                                 const newNetworkId = localNetwork ? [parseInt(localNetwork, 10)] : [];
                                 const newGroup = localNetwork ? `network.internal.${localNetwork}` : undefined;
 
+                                let updatedGraph = graphData;
+                                let updatedComputerNode = { ...selectedComputer };
+
+                                // Rename computer if ID changed
+                                if (localId !== selectedComputer.id) {
+                                    updatedGraph = renameComputer(updatedGraph, selectedComputer.id, localId);
+                                    updatedComputerNode = { ...updatedComputerNode, id: localId };
+                                }
+
                                 // 1. Ažuriraj JSON stanje
-                                updateComputer(selectedComputer.id, { label: localLabel, network_idn: newNetworkId });
+                                updateComputer(updatedComputerNode.id, { label: localLabel, network_idn: newNetworkId });
 
                                 // 2. Pripremi ažurani čvor
-                                const updatedComputerNode = {
-                                    ...selectedComputer,
-                                    id: finalId,
+                                updatedComputerNode = {
+                                    ...updatedComputerNode,
                                     label: localLabel,
                                     group: newGroup,
                                     meta: {
-                                    ...selectedComputer.meta,
-                                    network_ids: newNetworkId
-                                    }
+                                        ...updatedComputerNode.meta,
+                                        network_ids: newNetworkId,
+                                    },
                                 };
 
                                 // 3. Pozovi helper funkciju za propagaciju mreže
                                 updatedGraph = propagateNetworkChangeLandscape(
                                     updatedGraph,
-                                    finalId,
+                                    updatedComputerNode.id,
                                     newGroup ?? '',
                                     newNetworkId,
                                     localLabel
                                 );
                                 updatedGraph = propagateNetworkChangeFirewalls(
                                     updatedGraph,
-                                    finalId,
+                                    updatedComputerNode.id,
                                     newGroup ?? '',
                                     newNetworkId,
                                     localLabel
                                 );
                                 updatedGraph = propagateNetworkChangeDataservices(
                                     updatedGraph,
-                                    finalId,
+                                    updatedComputerNode.id,
                                     newGroup ?? '',
                                     newNetworkId,
                                     localLabel
                                 );
                                 updatedGraph = propagateNetworkChangeCredentials(
                                     updatedGraph,
-                                    finalId,
+                                    updatedComputerNode.id,
                                     newGroup ?? '',
                                     localLabel,
                                     newNetworkId
