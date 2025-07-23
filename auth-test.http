@@ -1,0 +1,22 @@
+  ### LOGIN
+  POST http://localhost:5000/login
+  Content-Type: application/json
+
+  {
+    "identifier": "filipal",
+    "password": "123456"
+  }
+
+  ###
+
+  ### Dohvati info o trenutno prijavljenom korisniku
+  GET http://localhost:5000/me
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1MzI5NjI4OSwianRpIjoiNzMwMGZiMTktNDBiNC00ZDA0LThlOGItNWI1MTc3NTYyZmQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6ImFkbWluIn0sIm5iZiI6MTc1MzI5NjI4OSwiY3NyZiI6IjRjZWI1YWM3LWRmZjUtNDJmZS1iYzZiLTU3N2Q0NTE4N2M5OCIsImV4cCI6MTc1MzI5NzE4OX0.5XF3X5mk2J8iCf8ENQAHO-MXllxrD8ljGWM7Vv4q8O8
+
+  ### Admin zona
+  GET http://localhost:5000/admin-area
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1MzI5NjI4OSwianRpIjoiNzMwMGZiMTktNDBiNC00ZDA0LThlOGItNWI1MTc3NTYyZmQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6ImFkbWluIn0sIm5iZiI6MTc1MzI5NjI4OSwiY3NyZiI6IjRjZWI1YWM3LWRmZjUtNDJmZS1iYzZiLTU3N2Q0NTE4N2M5OCIsImV4cCI6MTc1MzI5NzE4OX0.5XF3X5mk2J8iCf8ENQAHO-MXllxrD8ljGWM7Vv4q8O8
+
+  ### Download test
+  GET http://localhost:5000/download
+  Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc1MzI5NjI4OSwianRpIjoiNzMwMGZiMTktNDBiNC00ZDA0LThlOGItNWI1MTc3NTYyZmQ1IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6eyJpZCI6Miwicm9sZSI6ImFkbWluIn0sIm5iZiI6MTc1MzI5NjI4OSwiY3NyZiI6IjRjZWI1YWM3LWRmZjUtNDJmZS1iYzZiLTU3N2Q0NTE4N2M5OCIsImV4cCI6MTc1MzI5NzE4OX0.5XF3X5mk2J8iCf8ENQAHO-MXllxrD8ljGWM7Vv4q8O8
