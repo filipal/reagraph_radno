@@ -273,6 +273,31 @@ export function propagateNetworkChangeLandscape(
   return { ...graphData };
 }
 
+export function renameComputer(
+  graphData: { nodes: NodeType[]; edges: EdgeType[] },
+  oldId: string,
+  newId: string,
+): { nodes: NodeType[]; edges: EdgeType[] } {
+  const node = graphData.nodes.find((n) => n.id === oldId);
+  if (node) {
+    node.id = newId;
+  }
+  graphData.edges.forEach((edge) => {
+    if (typeof edge.source === 'string') {
+      if (edge.source === oldId) edge.source = newId;
+    } else if (edge.source.id === oldId) {
+      edge.source.id = newId;
+    }
+
+    if (typeof edge.target === 'string') {
+      if (edge.target === oldId) edge.target = newId;
+    } else if (edge.target.id === oldId) {
+      edge.target.id = newId;
+    }
+  });
+  return { ...graphData };
+}
+
 export function propagateNetworkChangeFirewalls(
   graphData: { nodes: NodeType[]; edges: EdgeType[] },
   computerId: string,
