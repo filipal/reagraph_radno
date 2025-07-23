@@ -83,9 +83,12 @@ export default function GraphicalModelViewer() {
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
 
   const [mode, setMode] = useState<'landscape' | 'firewalls' | 'dataservices' | 'credentials'>('landscape');
-  const [mergedRaw, setMergedRaw] = useState<any>(null);
+/*   const [mergedRaw, setMergedRaw] = useState<any>(null);
   const { setEditableJson } = useSession();
-  const { graphData, setGraphData } = useSession();
+  const { graphData, setGraphData } = useSession(); */
+  const [mergedRaw, setMergedRaw] = useState<any>(null);
+  const { graphData, setGraphData, editableJson, setEditableJson } = useSession();
+
 useEffect(() => {
   const readFiles = async () => {
     try {
@@ -192,9 +195,17 @@ useEffect(() => {
 
       {graphData ? (
         <GraphCanvasComponent
-          key={JSON.stringify(graphData)}
+/*           key={JSON.stringify(graphData)}
           data={graphData}
           inputJson={mergedRaw}
+          viewMode={mode}
+          selectedGroup={selectedGroup}
+          setSelectedGroup={setSelectedGroup}
+          selectedTypes={selectedTypes}
+          setSelectedTypes={setSelectedTypes} */
+          key={JSON.stringify(graphData)}
+          data={graphData}
+          inputJson={editableJson}
           viewMode={mode}
           selectedGroup={selectedGroup}
           setSelectedGroup={setSelectedGroup}

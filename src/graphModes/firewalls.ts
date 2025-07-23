@@ -66,7 +66,7 @@ export function filterFirewallsGraph(
 
         addNode({
           id: toCompId,
-          label: formatServerId(toCompId),
+          label: toComp.label || formatServerId(toCompId),
           fullName: toCompId,
           type: 'computer',
           icon: '/icons/computer.png',
@@ -119,7 +119,7 @@ export function filterFirewallsGraph(
 
         addNode({
           id: fromCompId,
-          label: formatServerId(fromCompId),
+          label: fromComp.label || formatServerId(fromCompId),
           fullName: fromCompId,
           type: 'computer',
           icon: '/icons/computer.png',
@@ -172,7 +172,7 @@ export function filterFirewallsGraph(
 
           addNode({
             id: toCompId,
-            label: formatServerId(toCompId),
+            label: toComp.label || formatServerId(toCompId),
             fullName: toCompId,
             type: 'computer',
             icon: '/icons/computer.png',

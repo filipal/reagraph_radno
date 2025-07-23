@@ -1,0 +1,7 @@
+{
+  "setup": [
+    "source venv/bin/activate",
+    "npm install",
+    "pip install -r requirements.txt"
+  ]
+}

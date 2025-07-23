@@ -7,7 +7,6 @@ function edgeExists(edges: EdgeType[], source: string, target: string) {
 }
 
 export function filterCredentialsGraph(
-  graphData: { nodes: NodeType[]; edges: EdgeType[] },
   inputJson: any,
   selectedGroup: string = '',
   selectedTypes: Set<string> = new Set()
@@ -135,7 +134,7 @@ export function filterCredentialsGraph(
       if (!nodeIndex[compId]) {
         const compNode: NodeType = {
           id: compId,
-          label: formatServerId(compId),
+          label: comp.label || formatServerId(compId),
           fullName: compId,
           type: 'computer',
           icon: '/icons/computer.png',

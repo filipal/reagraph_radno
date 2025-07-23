@@ -37,7 +37,7 @@ export function filterDataservicesGraph(
         // ➔ Dodaj computer node
         const compNode: NodeType = {
             id: compId,
-            label: formatServerId(compId),
+            label: comp.label || formatServerId(compId),
             fullName: compId,
             type: 'computer',
             icon: '/icons/computer.png',

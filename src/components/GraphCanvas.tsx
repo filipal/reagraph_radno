@@ -107,7 +107,8 @@ const [layoutedData, setLayoutedData] = useState<GraphDataWithResolvedEdges>(pre
   const handleExport = () => exportGraphData(layoutedData);
 
   // Hookovi na početku komponente
-  const filteredData = useGraphFilters(preparedData, inputJson, viewMode, selectedGroup, selectedTypes);
+  // Use editableJson so that changes made in the editor are reflected across all views
+  const filteredData = useGraphFilters(preparedData, editableJson, viewMode, selectedGroup, selectedTypes);
   const layoutedNodes = manualLayout(filteredData.nodes);
 
 
