@@ -35,6 +35,14 @@ The application provides the following features:
     ```bash
     npm install
     ```
+3. Set the `JWT_SECRET_KEY` environment variable for the Flask backend:
+    ```bash
+    export JWT_SECRET_KEY="<your secret>"
+    ```
+4. Run the app:
+    ```bash
+    npm run dev
+    ```
 3. Run the app:
     ```bash
     npm run dev

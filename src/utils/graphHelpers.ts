@@ -278,24 +278,29 @@ export function renameComputer(
   oldId: string,
   newId: string,
 ): { nodes: NodeType[]; edges: EdgeType[] } {
-  const node = graphData.nodes.find((n) => n.id === oldId);
-  if (node) {
-    node.id = newId;
-  }
-  graphData.edges.forEach((edge) => {
-    if (typeof edge.source === 'string') {
-      if (edge.source === oldId) edge.source = newId;
-    } else if (edge.source.id === oldId) {
-      edge.source.id = newId;
+  const updatedNodes = graphData.nodes.map((n) =>
+    n.id === oldId ? { ...n, id: newId } : n,
+  );
+
+  const updatedEdges = graphData.edges.map((edge) => {
+    let source = edge.source;
+    let target = edge.target;
+
+    if (typeof source === 'string') {
+      if (source === oldId) source = newId;
+    } else if (source.id === oldId) {
+      source = { ...source, id: newId };
     }
 
-    if (typeof edge.target === 'string') {
-      if (edge.target === oldId) edge.target = newId;
-    } else if (edge.target.id === oldId) {
-      edge.target.id = newId;
+    if (typeof target === 'string') {
+      if (target === oldId) target = newId;
+    } else if (target.id === oldId) {
+      target = { ...target, id: newId };
     }
+
+    return { ...edge, source, target };
   });
-  return { ...graphData };
+  return { nodes: updatedNodes, edges: updatedEdges };
 }
 
 export function propagateNetworkChangeFirewalls(
