@@ -243,6 +243,12 @@ export function buildComputerId(name: string, personIndex: string, networkId: st
   return `${name}:${personIndex}:${networkId}`;
 }
 
+export function shortUserId(computerId: string): string {
+  const parts = computerId.split(':');
+  return parts.slice(0, 2).join(':');
+}
+
+
 export function propagateNetworkChangeLandscape(
   graphData: { nodes: NodeType[]; edges: EdgeType[] },
   computerId: string,
@@ -297,6 +303,10 @@ export function renameComputer(
 ): { nodes: NodeType[]; edges: EdgeType[] } {
   const escapedOldId = oldId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
   const idRegex = new RegExp(escapedOldId, 'g');
+  const oldUserNodeId = `user-${shortUserId(oldId)}`;
+  const newUserNodeId = `user-${shortUserId(newId)}`;
+  const escapedOldUserId = oldUserNodeId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
+  const userRegex = new RegExp(escapedOldUserId, 'g');
 
   const updatedNodes = graphData.nodes.map((n) => {
     let updatedNode: NodeType = { ...n };
@@ -316,6 +326,11 @@ export function renameComputer(
           },
         };
       }
+    }
+
+    // Rename user node
+    if (n.id === oldUserNodeId) {
+      updatedNode = { ...n, id: newUserNodeId };
     }
 
     // Rename software nodes installed on the computer
@@ -342,19 +357,24 @@ export function renameComputer(
   });
 
   const updatedEdges = graphData.edges.map((edge) => {
-    const replaceInString = (val: string): string => val.replace(idRegex, newId);
+    const replaceInString = (val: string): string =>
+      val.replace(idRegex, newId).replace(userRegex, newUserNodeId);
     let source = edge.source;
     let target = edge.target;
 
     if (typeof source === 'string') {
-      if (source.includes(oldId)) source = replaceInString(source);
-    } else if (source.id.includes(oldId)) {
+      if (source.includes(oldId) || source.includes(oldUserNodeId)) {
+        source = replaceInString(source);
+      }
+    } else if (source.id.includes(oldId) || source.id.includes(oldUserNodeId)) {
       source = { ...source, id: replaceInString(source.id) };
     }
 
     if (typeof target === 'string') {
-      if (target.includes(oldId)) target = replaceInString(target);
-    } else if (target.id.includes(oldId)) {
+      if (target.includes(oldId) || target.includes(oldUserNodeId)) {
+        target = replaceInString(target);
+      }
+    } else if (target.id.includes(oldId) || target.id.includes(oldUserNodeId)) {
       target = { ...target, id: replaceInString(target.id) };
     }
 
@@ -362,7 +382,7 @@ export function renameComputer(
 
     return { ...edge, id: newEdgeId, source, target };
   });
-  
+
   return { nodes: updatedNodes, edges: updatedEdges };
 }
 

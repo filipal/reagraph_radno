@@ -102,6 +102,33 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
           if (typeof newVal.computer_idn === 'string' && newVal.computer_idn.startsWith(oldId)) {
             newVal.computer_idn = newId + newVal.computer_idn.slice(oldId.length);
           }
+
+          const renameNestedKeys = (obj: any) => {
+            if (!obj || typeof obj !== 'object') return obj;
+            const renamed: Record<string, any> = {};
+            for (const [k, v] of Object.entries(obj)) {
+              const nk = k.startsWith(oldId) ? newId + k.slice(oldId.length) : k;
+              renamed[nk] = v;
+            }
+            return renamed;
+          };
+
+          if (Array.isArray(newVal.provides_user_services)) {
+            newVal.provides_user_services = newVal.provides_user_services.map((id: string) =>
+              id.startsWith(oldId) ? newId + id.slice(oldId.length) : id,
+            );
+          } else {
+            newVal.provides_user_services = renameNestedKeys(newVal.provides_user_services);
+          }
+
+          if (Array.isArray(newVal.provides_network_services)) {
+            newVal.provides_network_services = newVal.provides_network_services.map((id: string) =>
+              id.startsWith(oldId) ? newId + id.slice(oldId.length) : id,
+            );
+          } else {
+            newVal.provides_network_services = renameNestedKeys(newVal.provides_network_services);
+          }
+
           newSw[newKey] = newVal;
         }
         return { ...comp, installed_software: newSw };
@@ -123,6 +150,32 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       const replacePrefix = (val: string): string =>
         val.startsWith(oldId) ? newId + val.slice(oldId.length) : val;
+
+      const renameServiceObjects = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        const renamed: Record<string, any> = {};
+        for (const [key, value] of Object.entries(obj)) {
+          const newKey = replacePrefix(key);
+          const newVal: any = typeof value === 'object' && value !== null ? { ...value } : value;
+          if (newVal) {
+            if (typeof newVal.software_idn === 'string') {
+              newVal.software_idn = replacePrefix(newVal.software_idn);
+            }
+            if (typeof newVal.computer_idn === 'string') {
+              newVal.computer_idn = replacePrefix(newVal.computer_idn);
+            }
+          }
+          renamed[newKey] = newVal;
+        }
+        return renamed;
+      };
+
+      if (updated.services) {
+        updated.services = renameServiceObjects(updated.services);
+      }
+      if (updated.user_services) {
+        updated.user_services = renameServiceObjects(updated.user_services);
+      }
 
       // ----- update credentials stored_at -----
       if (updated.credentials) {
