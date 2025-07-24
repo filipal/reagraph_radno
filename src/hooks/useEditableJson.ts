@@ -3,17 +3,27 @@ import { useState, useCallback } from 'react';
 export function useEditableJson<T extends Record<string, any>>(originalJson: T) {
   const [editableJson, setEditableJson] = useState<T>(() => structuredClone(originalJson));
 
-  const updateComputer = useCallback((id: string, updatedData: Partial<T['computers'][string]>) => {
-    setEditableJson(prev => ({
-      ...prev,
-      computers: {
-        ...prev.computers,
-        [id]: {
-          ...prev.computers[id],
-          ...updatedData
-        }
+  const updateComputer = useCallback((
+    id: string,
+    updatedData: Partial<T['computers'][string]>,
+    oldId?: string,
+  ) => {
+    setEditableJson(prev => {
+      const computers = { ...prev.computers };
+      if (oldId && oldId !== id && computers[oldId]) {
+        delete computers[oldId];
       }
-    }));
+      return {
+        ...prev,
+        computers: {
+          ...computers,
+          [id]: {
+            ...(computers[id] || {}),
+            ...updatedData,
+          },
+        },
+      };
+    });
   }, []);
 
   const resetChanges = () => {

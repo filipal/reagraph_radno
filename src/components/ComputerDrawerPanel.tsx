@@ -77,7 +77,7 @@ const ComputerDrawerPanel: React.FC<Props> = ({
     const [activeTab, setActiveTab] = useState('general');
     const [drawerWidth, setDrawerWidth] = useState(400);
     const [collapsed, setCollapsed] = useState(false);
-    const { editableJson, updateComputer, setGraphData } = useSession();
+    const { editableJson, updateComputer, setGraphData, renameComputerInJson } = useSession();
     const { updateNode, graphData } = useGraph();
 
     // Dohvati trenutno dodijeljenu mrežu za selectedComputer
@@ -1034,11 +1034,16 @@ const ComputerDrawerPanel: React.FC<Props> = ({
                                 // Rename computer if ID changed
                                 if (localId !== selectedComputer.id) {
                                     updatedGraph = renameComputer(updatedGraph, selectedComputer.id, localId);
+                                    renameComputerInJson(selectedComputer.id, localId);
                                     updatedComputerNode = { ...updatedComputerNode, id: localId };
                                 }
 
                                 // 1. Ažuriraj JSON stanje
-                                updateComputer(updatedComputerNode.id, { label: localLabel, network_idn: newNetworkId });
+                                updateComputer(
+                                    updatedComputerNode.id,
+                                    { label: localLabel, network_idn: newNetworkId },
+                                    localId !== selectedComputer.id ? selectedComputer.id : undefined,
+                                );
 
                                 // 2. Pripremi ažurani čvor
                                 updatedComputerNode = {

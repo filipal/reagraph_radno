@@ -29,7 +29,11 @@ type SessionContextType = {
   setFiles: (files: FileItem[]) => void;
   editableJson: any;
   setEditableJson: (data: any) => void;
-  updateComputer: (id: string, updatedData: Partial<any>) => void;
+  updateComputer: (
+    id: string,
+    updatedData: Partial<any>,
+    oldId?: string,
+  ) => void;
   renameComputerInJson: (oldId: string, newId: string) => void;
 };
 
@@ -52,17 +56,27 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [editableJson, setEditableJson] = useState<any>(null);
 
-  const updateComputer = (id: string, updatedData: Partial<any>) => {
-    setEditableJson((prev: any) => ({
-      ...prev,
-      computers: {
-        ...prev.computers,
-        [id]: {
-          ...prev.computers[id],
-          ...updatedData,
+  const updateComputer = (
+    id: string,
+    updatedData: Partial<any>,
+    oldId?: string,
+  ) => {
+    setEditableJson((prev: any) => {
+      const computers = { ...prev.computers };
+      if (oldId && oldId !== id && computers[oldId]) {
+        delete computers[oldId];
+      }
+      return {
+        ...prev,
+        computers: {
+          ...computers,
+          [id]: {
+            ...(computers[id] || {}),
+            ...updatedData,
+          },
         },
-      },
-    }));
+      };
+    });
   };
 
   const renameComputerInJson = (oldId: string, newId: string) => {
