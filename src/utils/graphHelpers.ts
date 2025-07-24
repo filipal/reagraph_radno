@@ -244,10 +244,13 @@ export function propagateNetworkChangeLandscape(
     if (sourceId === computerId) connectedNodeIds.add(targetId);
     if (targetId === computerId) connectedNodeIds.add(sourceId);
   });
-  // Prvo propagiraj na sve povezane čvorove
+
+  // Prvo propagiraj group i network na sve povezane čvorove, a label samo na odabrano računalo
   graphData.nodes.forEach(node => {
     if (connectedNodeIds.has(node.id)) {
-      node.label = newLabel;
+      if (node.id === computerId) {
+        node.label = newLabel;
+      }
       node.group = newGroup;
       if (node.meta) node.meta.network_ids = newNetworkIds;
     }
@@ -263,7 +266,6 @@ export function propagateNetworkChangeLandscape(
           const targetNode = graphData.nodes.find(n => n.id === targetId);
           if (targetNode && (targetNode.type === 'service' || targetNode.type === 'user-service')) {
             targetNode.group = newGroup;
-            targetNode.label = node.label;
             if (targetNode.meta) targetNode.meta.network_ids = newNetworkIds;
           }
         }

@@ -16,7 +16,7 @@
 
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { GraphData, FileItem } from '../types';
+import type { GraphData, FileItem, Computer } from '../types';
 import { useState } from 'react';
 
 // Type describing the structure of the available data in the context
@@ -90,7 +90,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       const renamedComp = { ...oldComp, idn: newId };
 
       // Rename installed software entries for all computers
-      const updateSoftware = (comp: any) => {
+      const updateSoftware = (comp: Computer): Computer => {
         if (!comp?.installed_software) return comp;
         const newSw: Record<string, any> = {};
         for (const [swKey, swVal] of Object.entries(comp.installed_software)) {
@@ -108,7 +108,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       };
 
       // update renamed computer itself
-      const updatedRenamedComp = updateSoftware(renamedComp);
+      const updatedRenamedComp = updateSoftware(renamedComp as Computer);
 
       // update all other computers for software referencing the old id
       const updatedComputers: Record<string, any> = {
@@ -116,7 +116,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         [newId]: updatedRenamedComp,
       };
       for (const [cid, comp] of Object.entries(otherComps)) {
-        updatedComputers[cid] = updateSoftware(comp);
+        updatedComputers[cid] = updateSoftware(comp as Computer);
       }
 
       updated.computers = updatedComputers;
