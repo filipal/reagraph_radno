@@ -10,6 +10,8 @@ import {
   propagateNetworkChangeDataservices,
   propagateNetworkChangeCredentials,
   renameComputer,
+  parseComputerId,
+  buildComputerId,
 } from '../utils/graphHelpers';
 
 // Define basic types for this component
@@ -1025,24 +1027,31 @@ const ComputerDrawerPanel: React.FC<Props> = ({
                     <div className={styles.actions}>
                         <button onClick={() => {
                             if (selectedComputer) {
-                                const newNetworkId = localNetwork ? [parseInt(localNetwork, 10)] : [];
-                                const newGroup = localNetwork ? `network.internal.${localNetwork}` : undefined;
+                                const parsed = parseComputerId(selectedComputer.id);
+                                const netStr = localNetwork || parsed.networkId;
+                                const finalIdPattern = /.+:\d+:\d+$/;
+                                const computedId = finalIdPattern.test(localId)
+                                    ? localId
+                                    : buildComputerId(localId, parsed.personIndex, netStr);
+
+                                const newNetworkId = netStr ? [parseInt(netStr, 10)] : [];
+                                const newGroup = netStr ? `network.internal.${netStr}` : undefined;
 
                                 let updatedGraph = graphData;
                                 let updatedComputerNode = { ...selectedComputer };
 
                                 // Rename computer if ID changed
-                                if (localId !== selectedComputer.id) {
-                                    updatedGraph = renameComputer(updatedGraph, selectedComputer.id, localId);
-                                    renameComputerInJson(selectedComputer.id, localId);
-                                    updatedComputerNode = { ...updatedComputerNode, id: localId };
+                                if (computedId !== selectedComputer.id) {
+                                    updatedGraph = renameComputer(updatedGraph, selectedComputer.id, computedId);
+                                    renameComputerInJson(selectedComputer.id, computedId);
+                                    updatedComputerNode = { ...updatedComputerNode, id: computedId };
                                 }
 
                                 // 1. Ažuriraj JSON stanje
                                 updateComputer(
                                     updatedComputerNode.id,
                                     { label: localLabel, network_idn: newNetworkId },
-                                    localId !== selectedComputer.id ? selectedComputer.id : undefined,
+                                    computedId !== selectedComputer.id ? selectedComputer.id : undefined,
                                 );
 
                                 // 2. Pripremi ažurani čvor

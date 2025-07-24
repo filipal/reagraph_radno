@@ -228,6 +228,21 @@ export function cleanUserId(id: string): string {
   return id.replace(/^user-/, '');
 }
 
+export function parseComputerId(id: string): { prefix: string; personIndex: string; networkId: string } {
+  const parts = id.split(':');
+  if (parts.length < 3) {
+    return { prefix: id, personIndex: '', networkId: '' };
+  }
+  const networkId = parts.pop() as string;
+  const personIndex = parts.pop() as string;
+  const prefix = parts.join(':');
+  return { prefix, personIndex, networkId };
+}
+
+export function buildComputerId(name: string, personIndex: string, networkId: string): string {
+  return `${name}:${personIndex}:${networkId}`;
+}
+
 export function propagateNetworkChangeLandscape(
   graphData: { nodes: NodeType[]; edges: EdgeType[] },
   computerId: string,
