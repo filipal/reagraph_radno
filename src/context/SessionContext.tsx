@@ -79,17 +79,60 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const renameComputerInJson = (oldId: string, newId: string) => {
+    const renameComputerInJson = (oldId: string, newId: string) => {
     setEditableJson((prev: any) => {
       if (!prev?.computers?.[oldId]) return prev;
-      const { [oldId]: oldComp, ...others } = prev.computers;
-      return {
-        ...prev,
-        computers: {
-          ...others,
-          [newId]: oldComp,
-        },
+
+      const updated = { ...prev };
+
+      // ----- update computer entry -----
+      const { [oldId]: oldComp, ...otherComps } = prev.computers;
+      const renamedComp = { ...oldComp, idn: newId };
+
+      // Rename installed software entries for all computers
+      const updateSoftware = (comp: any) => {
+        if (!comp?.installed_software) return comp;
+        const newSw: Record<string, any> = {};
+        for (const [swKey, swVal] of Object.entries(comp.installed_software)) {
+          let newKey: string = swKey;
+          if (swKey.startsWith(oldId)) {
+            newKey = newId + swKey.slice(oldId.length);
+          }
+          const newVal: any = typeof swVal === 'object' && swVal !== null ? { ...swVal } : swVal;
+          if (typeof newVal.computer_idn === 'string' && newVal.computer_idn.startsWith(oldId)) {
+            newVal.computer_idn = newId + newVal.computer_idn.slice(oldId.length);
+          }
+          newSw[newKey] = newVal;
+        }
+        return { ...comp, installed_software: newSw };
       };
+
+      // update renamed computer itself
+      const updatedRenamedComp = updateSoftware(renamedComp);
+
+      // update all other computers for software referencing the old id
+      const updatedComputers: Record<string, any> = {
+        ...otherComps,
+        [newId]: updatedRenamedComp,
+      };
+      for (const [cid, comp] of Object.entries(otherComps)) {
+        updatedComputers[cid] = updateSoftware(comp);
+      }
+
+      updated.computers = updatedComputers;
+
+      // ----- update credentials stored_at -----
+      if (updated.credentials) {
+        for (const cred of Object.values(updated.credentials) as any[]) {
+          if (Array.isArray(cred.stored_at)) {
+            cred.stored_at = cred.stored_at.map((loc: string) =>
+              typeof loc === 'string' ? loc.replaceAll(oldId, newId) : loc,
+            );
+          }
+        }
+      }
+
+      return updated;
     });
   };
 
