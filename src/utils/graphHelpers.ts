@@ -295,9 +295,13 @@ export function renameComputer(
   oldId: string,
   newId: string,
 ): { nodes: NodeType[]; edges: EdgeType[] } {
-  const updatedNodes = graphData.nodes.map((n) => {
-    let updatedNode = { ...n };
+  const escapedOldId = oldId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
+  const idRegex = new RegExp(escapedOldId, 'g');
 
+  const updatedNodes = graphData.nodes.map((n) => {
+    let updatedNode: NodeType = { ...n };
+
+    // Rename the computer node itself
     if (n.id === oldId) {
       updatedNode = { ...n, id: newId };
       if (updatedNode.meta?.originalComputer) {
@@ -314,39 +318,51 @@ export function renameComputer(
       }
     }
 
-    if (updatedNode.meta?.computer_idn === oldId) {
+    // Rename software nodes installed on the computer
+    if (n.type === 'software' && n.id.startsWith(`${oldId}>`)) {
+      updatedNode = { ...n, id: n.id.replace(idRegex, newId) };
+    }
+
+    // Rename service and user-service nodes referencing the computer or software
+    if (n.type === 'service' || n.type === 'user-service') {
+      if (n.id.includes(oldId)) {
+        updatedNode = { ...updatedNode, id: n.id.replace(idRegex, newId) };
+      }
+    }
+
+    // Update computer_idn metadata if it references the old id
+    if (updatedNode.meta?.computer_idn && updatedNode.meta.computer_idn.includes(oldId)) {
       updatedNode = {
         ...updatedNode,
-        meta: { ...updatedNode.meta, computer_idn: newId },
+        meta: { ...updatedNode.meta, computer_idn: updatedNode.meta.computer_idn.replace(idRegex, newId) },
       };
     }
 
     return updatedNode;
   });
 
-  const escapedOldId = oldId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
-  const idRegex = new RegExp(escapedOldId, 'g');
-
   const updatedEdges = graphData.edges.map((edge) => {
+    const replaceInString = (val: string): string => val.replace(idRegex, newId);
     let source = edge.source;
     let target = edge.target;
 
     if (typeof source === 'string') {
-      if (source === oldId) source = newId;
-    } else if (source.id === oldId) {
-      source = { ...source, id: newId };
+      if (source.includes(oldId)) source = replaceInString(source);
+    } else if (source.id.includes(oldId)) {
+      source = { ...source, id: replaceInString(source.id) };
     }
 
     if (typeof target === 'string') {
-      if (target === oldId) target = newId;
-    } else if (target.id === oldId) {
-      target = { ...target, id: newId };
+      if (target.includes(oldId)) target = replaceInString(target);
+    } else if (target.id.includes(oldId)) {
+      target = { ...target, id: replaceInString(target.id) };
     }
 
-    const newEdgeId = edge.id.replace(idRegex, newId);
+    const newEdgeId = replaceInString(edge.id);
 
     return { ...edge, id: newEdgeId, source, target };
   });
+  
   return { nodes: updatedNodes, edges: updatedEdges };
 }
 
