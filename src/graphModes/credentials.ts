@@ -128,7 +128,8 @@ export function filterCredentialsGraph(
     // 🔹 Add stored_at (computers)
     for (const compId of storedAt) {
       const comp = inputJson.computers?.[compId];
-      const networkIds = comp?.network_idn || [];
+      if (!comp) continue;
+      const networkIds = comp.network_idn || [];
       const credGroup = networkIds.length > 0 ? `network.internal.${networkIds.join('_')}` : 'no-network';
 
       if (!nodeIndex[compId]) {
@@ -141,7 +142,7 @@ export function filterCredentialsGraph(
           group: credGroup,
           meta: {
             originalComputer: comp,
-            network_ids: comp?.network_idn || []
+            network_ids: comp.network_idn || []
           }
         };
         nodes.push(compNode);

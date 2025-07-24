@@ -351,8 +351,10 @@ export function propagateNetworkChangeFirewalls(
         graphData.nodes.forEach(node => {
             if (connectedNodeIds.has(node.id)) {
                 console.log('[Firewalls] Updating node', { nodeId: node.id, prevGroup: node.group, newGroup, prevNetworkIds: node.meta?.network_ids, newNetworkIds });
+                if (node.id === computerId) {
+                  node.label = newLabel;
+                }
                 node.group = newGroup;
-                node.label = newLabel;
                 if (node.meta) node.meta.network_ids = newNetworkIds;
             }
         });
@@ -367,7 +369,6 @@ export function propagateNetworkChangeFirewalls(
           const targetNode = graphData.nodes.find(n => n.id === targetId);
           if (targetNode && (targetNode.type === 'service' || targetNode.type === 'user-service')) {
             targetNode.group = newGroup;
-            targetNode.label = node.label;
             if (targetNode.meta) targetNode.meta.network_ids = newNetworkIds;
           }
         }
@@ -395,8 +396,10 @@ export function propagateNetworkChangeDataservices(
         graphData.nodes.forEach(node => {
             if (connectedNodeIds.has(node.id)) {
                 console.log('[Dataservices] Updating node', { nodeId: node.id, prevGroup: node.group, newGroup, prevNetworkIds: node.meta?.network_ids, newNetworkIds });
+                if (node.id === computerId) {
+                    node.label = newLabel;
+                }
                 node.group = newGroup;
-                node.label = newLabel;
                 if (node.meta) node.meta.network_ids = newNetworkIds;
             }
         });
@@ -412,7 +415,6 @@ export function propagateNetworkChangeDataservices(
           const targetNode = graphData.nodes.find(n => n.id === targetId);
           if (targetNode && (targetNode.type === 'service' || targetNode.type === 'user-service')) {
             targetNode.group = newGroup;
-            targetNode.label = node.label;
             if (targetNode.meta) targetNode.meta.network_ids = newNetworkIds;
           }
         }
@@ -441,7 +443,6 @@ export function propagateNetworkChangeCredentials(
             if (connectedNodeIds.has(node.id)) {
                 console.log('[Credentials] Updating node', { nodeId: node.id, prevGroup: node.group, newGroup });
                 node.group = newGroup;
-                node.label = newLabel;
                 if (node.meta) node.meta.network_ids = newNetworkIds;
             }
         });
@@ -456,7 +457,7 @@ export function propagateNetworkChangeCredentials(
           const targetNode = graphData.nodes.find(n => n.id === targetId);
           if (targetNode && (targetNode.type === 'service' || targetNode.type === 'user-service')) {
             targetNode.group = newGroup;
-            targetNode.label = node.label;
+            if (targetNode.meta) targetNode.meta.network_ids = newNetworkIds;
           }
         }
       });
