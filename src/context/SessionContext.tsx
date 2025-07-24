@@ -132,6 +132,22 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
+      // ----- update firewall rules -----
+      if (updated.firewall_rules) {
+        for (const rule of Object.values(updated.firewall_rules) as any[]) {
+          if (Array.isArray(rule.from_objects)) {
+            rule.from_objects = rule.from_objects.map((obj: string) =>
+              typeof obj === 'string' ? obj.replaceAll(oldId, newId) : obj,
+            );
+          }
+          if (Array.isArray(rule.to_objects)) {
+            rule.to_objects = rule.to_objects.map((obj: string) =>
+              typeof obj === 'string' ? obj.replaceAll(oldId, newId) : obj,
+            );
+          }
+        }
+      }
+
       return updated;
     });
   };
