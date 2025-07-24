@@ -121,12 +121,15 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       updated.computers = updatedComputers;
 
+      const replacePrefix = (val: string): string =>
+        val.startsWith(oldId) ? newId + val.slice(oldId.length) : val;
+
       // ----- update credentials stored_at -----
       if (updated.credentials) {
         for (const cred of Object.values(updated.credentials) as any[]) {
           if (Array.isArray(cred.stored_at)) {
             cred.stored_at = cred.stored_at.map((loc: string) =>
-              typeof loc === 'string' ? loc.replaceAll(oldId, newId) : loc,
+              typeof loc === 'string' ? replacePrefix(loc) : loc,
             );
           }
         }
@@ -137,17 +140,16 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         for (const rule of Object.values(updated.firewall_rules) as any[]) {
           if (Array.isArray(rule.from_objects)) {
             rule.from_objects = rule.from_objects.map((obj: string) =>
-              typeof obj === 'string' ? obj.replaceAll(oldId, newId) : obj,
+              typeof obj === 'string' ? replacePrefix(obj) : obj,
             );
           }
           if (Array.isArray(rule.to_objects)) {
             rule.to_objects = rule.to_objects.map((obj: string) =>
-              typeof obj === 'string' ? obj.replaceAll(oldId, newId) : obj,
+              typeof obj === 'string' ? replacePrefix(obj) : obj,
             );
           }
         }
       }
-
       return updated;
     });
   };
