@@ -3,7 +3,7 @@
  *
  * Ova datoteka sadrži:
  * - Tipove koji omogućuju rad s rubovima koji koriste reference na čvorove (za Reagraph)
- * - Funkcije za izračun layouta pomoću ForceAtlas2 algoritma
+ * - Funkcije za izračun layouta pomoću  algoritma
  * - Alate za pomicanje čvorova i vizualne prilagodbe (boje, ikone)
  * - Funkcionalnosti za pojednostavljenje grafa i rad s koordinatama
  *
@@ -12,7 +12,6 @@
  */
 
 import Graph from 'graphology';
-import forceAtlas2 from 'graphology-layout-forceatlas2';
 import type { GraphData, NodeType, EdgeType } from '../types';
 
 const getNodeId = (ref: string | NodeType): string =>
@@ -49,7 +48,7 @@ export function simplifyGraph(data: GraphDataWithResolvedEdges): GraphData {
 }
 
 /**
- * Primjenjuje ForceAtlas2 layout algoritam na zadani graf.
+ * Primjenjuje graph layout algoritam na zadani graf.
  * - Izračunava pozicije čvorova (x, y).
  * - Povezuje rubove s referencama na stvarne čvorove (umjesto ID-eva).
  * - Ovo je potrebno za kompatibilnost sa Reagraph prikazom.
@@ -138,6 +137,6 @@ export type ResolvedEdge = Omit<EdgeType, 'source' | 'target'> & {
   target: NodeType;
 };
 
-export function isResolvedEdge(edge: any): edge is ResolvedEdge {
+export function isResolvedEdge(edge: EdgeType): edge is ResolvedEdge {
   return typeof edge.source === 'object' && typeof edge.target === 'object';
 }

@@ -14,7 +14,7 @@ import { iconMap } from './graphUtils';
 /**
  * Pomoćna funkcija za određivanje tipa čvora na temelju id-a ili ikone.
  */
-const inferNodeType = (node: any): string => {
+const inferNodeType = (node: NodeType): string => {
   if (node.icon?.includes('user.png') || node.id?.startsWith('user-')) return 'user';
   if (node.icon?.includes('binary.png')) return 'software';
   if (node.icon?.includes('service.png')) return 'service';

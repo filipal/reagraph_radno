@@ -8,14 +8,16 @@ export const LocalStorageLayer = {
       const json = JSON.stringify(data);
       localStorage.setItem(key, json);
     } catch (error) {
+      console.error('Error saving JSON to localStorage:', error);
     }
   },
 
-  loadJSON: (key: string): any | null => {
+  loadJSON: (key: string): string | null => {
     try {
       const json = localStorage.getItem(key);
       return json ? JSON.parse(json) : null;
     } catch (error) {
+      console.error('Error loading JSON from localStorage:', error);
       return null;
     }
   },

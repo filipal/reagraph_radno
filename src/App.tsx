@@ -5,15 +5,19 @@ import DashboardPage from './pages/dashboardPage'
 import GraphicalModelViewer from './pages/GraphicalModelViewer'
 import ProtectedRoute from './routes/ProtectedRoute'
 import styles from './components/loginform.module.scss'
-// @ts-ignore
 import NET from "vanta/dist/vanta.net.min";
 import * as THREE from 'three'
 
 
+type VantaEffect = {
+  destroy: () => void
+}
+
 function App() {
   const location = useLocation()
   const vantaRef = useRef<HTMLDivElement>(null)
-  const [vantaEffect, setVantaEffect] = useState<any>(null)
+  const [vantaEffect, setVantaEffect] = useState<VantaEffect | null>(null)
+
 
   useEffect(() => {
     if (location.pathname === '/login' && !vantaEffect && vantaRef.current) {

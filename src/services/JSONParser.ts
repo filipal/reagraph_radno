@@ -43,7 +43,7 @@ export function getCustomerLabel(binaryLabel: string): string {
 
 export function getBinaryLabel(sw: any): string {
   
-  let name = sw?.name?.trim() || '';
+  const name = sw?.name?.trim() || '';
   const cpe = sw?.cpe_idn || '';
   const idn = sw?.idn || '';
   const source = name || cpe || idn;
@@ -59,7 +59,7 @@ export function getBinaryLabel(sw: any): string {
 
   let extracted = source.split(/[:\/]/).pop() || source;
   extracted = extracted.split('#')[0];
-  let norm = extracted.replace(/_/g, ' ').toLowerCase();
+  const norm = extracted.replace(/_/g, ' ').toLowerCase();
 
   // Prvo provjeri cijeli string za Exchange Server i slične
   if (normFull.includes('exchange_server') || normFull.includes('exchange server'))
@@ -258,7 +258,7 @@ export function parseJSONToGraph(json: any, inputJson?: any, showOperatingSystem
     if (!comp || typeof comp !== 'object') continue;
 
     let personId: string | undefined;
-    let validSoftwareIds: string[] = [];
+    const validSoftwareIds: string[] = [];
 
     if (comp.installed_software && typeof comp.installed_software === 'object') {
       for (const [swId, sw] of Object.entries(comp.installed_software) as [string, any][]) {
@@ -388,7 +388,7 @@ export function parseJSONToGraph(json: any, inputJson?: any, showOperatingSystem
 
       const isDotNetFramework = binaryLabelLower.includes('.net framework') || binaryLabelLower.includes('4.8');
 
-      let shouldIncludeSoftwareNode = isDotNetFramework ? (providesValidService || isReferenced) : (hasPerson || providesValidService || isReferenced);
+      const shouldIncludeSoftwareNode = isDotNetFramework ? (providesValidService || isReferenced) : (hasPerson || providesValidService || isReferenced);
       if (!shouldIncludeSoftwareNode) continue;
 
       if (!nodeIndex[swId]) {

@@ -19,7 +19,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
     "sqlite:///local.db"
 )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY")
+app.config["JWT_SECRET_KEY"] = "tajna"
 
 # Ekstenzije
 db = SQLAlchemy(app)
