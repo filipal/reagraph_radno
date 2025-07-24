@@ -422,7 +422,9 @@ const handleNodeClickWithDelay = (node: NodeType) => {
             graphRef.current?.centerNode(node.id);
           }}
           onSave={(updatedNode) => {
-            updateNode(updatedNode);
+            if (selectedNode?.id === updatedNode.id) {
+              updateNode(updatedNode);
+            }
             setSelectedNode(null);
           }}
           onCancel={() => setSelectedNode(null)}
