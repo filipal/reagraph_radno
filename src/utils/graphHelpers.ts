@@ -278,9 +278,37 @@ export function renameComputer(
   oldId: string,
   newId: string,
 ): { nodes: NodeType[]; edges: EdgeType[] } {
-  const updatedNodes = graphData.nodes.map((n) =>
-    n.id === oldId ? { ...n, id: newId } : n,
-  );
+  const updatedNodes = graphData.nodes.map((n) => {
+    let updatedNode = { ...n };
+
+    if (n.id === oldId) {
+      updatedNode = { ...n, id: newId };
+      if (updatedNode.meta?.originalComputer) {
+        updatedNode = {
+          ...updatedNode,
+          meta: {
+            ...updatedNode.meta,
+            originalComputer: {
+              ...updatedNode.meta.originalComputer,
+              idn: newId,
+            },
+          },
+        };
+      }
+    }
+
+    if (updatedNode.meta?.computer_idn === oldId) {
+      updatedNode = {
+        ...updatedNode,
+        meta: { ...updatedNode.meta, computer_idn: newId },
+      };
+    }
+
+    return updatedNode;
+  });
+
+  const escapedOldId = oldId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
+  const idRegex = new RegExp(escapedOldId, 'g');
 
   const updatedEdges = graphData.edges.map((edge) => {
     let source = edge.source;
@@ -298,7 +326,9 @@ export function renameComputer(
       target = { ...target, id: newId };
     }
 
-    return { ...edge, source, target };
+    const newEdgeId = edge.id.replace(idRegex, newId);
+
+    return { ...edge, id: newEdgeId, source, target };
   });
   return { nodes: updatedNodes, edges: updatedEdges };
 }

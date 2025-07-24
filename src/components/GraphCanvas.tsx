@@ -36,7 +36,6 @@ import HoverPanel from './HoverPanel';
 import { useGraphFilters } from '../hooks/useGraphFilters';
 import { useZoomToGroup } from '../hooks/useZoomToGroup';
 import { useResetStates } from '../hooks/useResetStates';
-import { useGraph } from '../hooks/useGraph';
 import { manualLayout, getDynamicLayoutConfig } from '../utils/layoutUtils';
 import { exportGraphData } from '../utils/exportUtils';
 import {
@@ -72,7 +71,6 @@ const GraphCanvasComponent: React.FC<GraphCanvasComponentProps> = ({
   const graphRef = useRef<any>(null);
 
   const { outputJson, editableJson, updateComputer } = useSession();
-  const { updateNode } = useGraph();
 
   const preparedData = useMemo(() => prepareGraph(data), [data]);
   
@@ -421,10 +419,7 @@ const handleNodeClickWithDelay = (node: NodeType) => {
             setSelectedNode(node);
             graphRef.current?.centerNode(node.id);
           }}
-          onSave={(updatedNode) => {
-            if (selectedNode?.id === updatedNode.id) {
-              updateNode(updatedNode);
-            }
+          onSave={() => {
             setSelectedNode(null);
           }}
           onCancel={() => setSelectedNode(null)}

@@ -30,6 +30,7 @@ type SessionContextType = {
   editableJson: any;
   setEditableJson: (data: any) => void;
   updateComputer: (id: string, updatedData: Partial<any>) => void;
+  renameComputerInJson: (oldId: string, newId: string) => void;
 };
 
 // Initial (empty) graph used on initialization
@@ -64,8 +65,33 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const renameComputerInJson = (oldId: string, newId: string) => {
+    setEditableJson((prev: any) => {
+      if (!prev?.computers?.[oldId]) return prev;
+      const { [oldId]: oldComp, ...others } = prev.computers;
+      return {
+        ...prev,
+        computers: {
+          ...others,
+          [newId]: oldComp,
+        },
+      };
+    });
+  };
+
   return (
-    <SessionContext.Provider value={{ graphData, setGraphData, outputJson, setOutputJson, files, setFiles, editableJson, setEditableJson, updateComputer }}>
+    <SessionContext.Provider value={{
+      graphData,
+      setGraphData,
+      outputJson,
+      setOutputJson,
+      files,
+      setFiles,
+      editableJson,
+      setEditableJson,
+      updateComputer,
+      renameComputerInJson,
+    }}>
       {children}
     </SessionContext.Provider>
   );
