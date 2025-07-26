@@ -95,9 +95,38 @@ test('renameComputer updates installed software keys across computers', () => {
   );
 
   assert.deepStrictEqual(cred.meta.originalCredential.stored_at, ['compX']);
+});
+
+test('renameComputer updates software node originalSoftware.idn', () => {
+  const graph = {
+    nodes: [
+      {
+        id: 'compA',
+        type: 'computer',
+        label: 'A',
+      },
+      {
+        id: 'compA>swNode',
+        type: 'software',
+        label: 'swNode',
+        meta: {
+          computer_idn: 'compA',
+          originalSoftware: {
+            idn: 'compA>swNode',
+            computer_idn: 'compA',
+            idn_variant: 'compA>swNode#0',
+          },
+        },
+      },
+    ],
+    edges: [],
+  };
+
+  const result = renameComputer(graph, 'compA', 'compX');
+  const swNode = result.nodes.find(n => n.id === 'compX>swNode');
 
   assert(swNode, 'Renamed software node not found');
-  assert.strictEqual(swNode.meta.computer_idn, 'compX');
-  assert.strictEqual(swNode.meta.originalSoftware.computer_idn, 'compX');
   assert.strictEqual(swNode.meta.originalSoftware.idn, 'compX>swNode');
+  assert.strictEqual(swNode.meta.originalSoftware.computer_idn, 'compX');
+  assert.strictEqual(swNode.meta.originalSoftware.idn_variant, 'compX>swNode#0');
 });
