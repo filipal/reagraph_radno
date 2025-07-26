@@ -47,6 +47,15 @@ test('renameComputer updates installed software keys across computers', () => {
         label: 'cred1',
         meta: { originalCredential: { idn: 'cred1', stored_at: ['compA'] } },
       },
+      {
+        id: 'compA>swNode',
+        type: 'software',
+        label: 'swNode',
+        meta: {
+          computer_idn: 'compA',
+          originalSoftware: { idn: 'compA>swNode', computer_idn: 'compA' },
+        },
+      },
     ],
     edges: [],
   };
@@ -55,6 +64,7 @@ test('renameComputer updates installed software keys across computers', () => {
   const compX = result.nodes.find(n => n.id === 'compX');
   const compB = result.nodes.find(n => n.id === 'compB');
   const cred = result.nodes.find(n => n.id === 'cred1');
+  const swNode = result.nodes.find(n => n.id === 'compX>swNode');
 
   assert(compX, 'Renamed computer not found');
   assert(compX.meta.originalComputer.installed_software['compX>sw1']);
@@ -85,4 +95,9 @@ test('renameComputer updates installed software keys across computers', () => {
   );
 
   assert.deepStrictEqual(cred.meta.originalCredential.stored_at, ['compX']);
+
+  assert(swNode, 'Renamed software node not found');
+  assert.strictEqual(swNode.meta.computer_idn, 'compX');
+  assert.strictEqual(swNode.meta.originalSoftware.computer_idn, 'compX');
+  assert.strictEqual(swNode.meta.originalSoftware.idn, 'compX>swNode');
 });

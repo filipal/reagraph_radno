@@ -392,6 +392,10 @@ export function renameComputer(
         if (updatedNode.meta.originalSoftware?.computer_idn) {
           updatedNode.meta.originalSoftware.computer_idn = updatedNode.meta.originalSoftware.computer_idn.replace(idRegex, newId);
         }
+        if (updatedNode.meta?.originalSoftware?.idn) {
+          updatedNode.meta.originalSoftware.idn =
+            updatedNode.meta.originalSoftware.idn.replace(idRegex, newId);
+        }
       }
     }
 

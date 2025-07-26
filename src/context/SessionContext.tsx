@@ -118,6 +118,9 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
           if (typeof newVal.computer_idn === 'string' && newVal.computer_idn.startsWith(oldId)) {
             newVal.computer_idn = newId + newVal.computer_idn.slice(oldId.length);
           }
+          if (typeof newVal.idn === 'string' && newVal.idn.startsWith(oldId)) {
+            newVal.idn = newId + newVal.idn.slice(oldId.length);
+          }
 
           const renameNestedKeys = (obj: any) => {
             if (!obj || typeof obj !== 'object') return obj;

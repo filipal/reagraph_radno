@@ -7,6 +7,7 @@
  * Ključno za pretvaranje modeliranih IT sustava u vizualnu mrežu.
  */
 import type { GraphData, NodeType, EdgeType, DetailedData } from '../types';
+import { shortUserId } from '../utils/graphHelpers';
 
 
 // ✅ Nova pomoćna funkcija za grupiranje nodova po tipu i id-u
@@ -341,7 +342,7 @@ export function parseJSONToGraph(json: any, inputJson?: any, showOperatingSystem
     }
 
     if (hasPerson && personId) {
-      const userNodeId = `user-${personId}`;
+      const userNodeId = `user-${shortUserId(compId)}`;
       // 🔹 Uvijek stvaraj vezu između računala i korisničkog čvora (role)
       if (nodeIndex[userNodeId]) {
         nodeIndex[userNodeId].group = networkGroup;
