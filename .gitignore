@@ -45,3 +45,4 @@ old_files
 # src/components/signupform.tsx
 
 src/components/GraphErrorBoundary.tsx
+tmp/

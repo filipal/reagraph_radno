@@ -307,6 +307,7 @@ export function renameComputer(
   const newUserNodeId = `user-${shortUserId(newId)}`;
   const escapedOldUserId = oldUserNodeId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
   const userRegex = new RegExp(escapedOldUserId, 'g');
+  const replacePrefix = (val: string): string => val.replace(idRegex, newId);
 
   const renameNestedKeys = (obj: any): any => {
     if (!obj || typeof obj !== 'object') return obj;
@@ -397,14 +398,87 @@ export function renameComputer(
     if (updatedNode.meta?.computer_idn && updatedNode.meta.computer_idn.includes(oldId)) {
       updatedNode = {
         ...updatedNode,
-        meta: { ...updatedNode.meta, computer_idn: updatedNode.meta.computer_idn.replace(idRegex, newId) },
+        meta: {
+          ...updatedNode.meta,
+          computer_idn: updatedNode.meta.computer_idn.replace(idRegex, newId),
+        },
       };
     }
 
-    if ((n.type === 'key' || n.type === 'lock') && updatedNode.meta?.originalCredential?.stored_at) {
-      updatedNode.meta.originalCredential.stored_at = updatedNode.meta.originalCredential.stored_at.map((loc: string) =>
-        typeof loc === 'string' ? loc.replace(idRegex, newId) : loc
-      );
+    // Rename installed software keys and internal references for all computers
+    if (n.type === 'computer' && n.meta?.originalComputer?.installed_software) {
+      // Add this check to ensure meta exists
+      if (!updatedNode.meta) return updatedNode;
+      const swEntries = Object.entries(n.meta.originalComputer.installed_software);
+      const newSw: Record<string, any> = {};
+
+      const renameObjKeys = (obj: any) => {
+        if (!obj || typeof obj !== 'object') return obj;
+        const renamed: Record<string, any> = {};
+        for (const [k, v] of Object.entries(obj)) {
+          renamed[replacePrefix(k)] = v;
+        }
+        return renamed;
+      };
+
+      for (const [swKey, swVal] of swEntries) {
+        const newKey = replacePrefix(swKey);
+        const newVal: any = typeof swVal === 'object' && swVal !== null ? { ...swVal } : swVal;
+
+        if (typeof newVal.idn === 'string') newVal.idn = replacePrefix(newVal.idn);
+        if (typeof newVal.computer_idn === 'string') newVal.computer_idn = replacePrefix(newVal.computer_idn);
+
+        const fields = [
+          'provides_user_services',
+          'provides_network_services',
+          'local_dependencies',
+          'network_dependencies',
+          'local_clients',
+          'network_clients',
+        ];
+
+        for (const f of fields) {
+          const val = newVal[f];
+          if (Array.isArray(val)) {
+            newVal[f] = val.map((s: string) => (typeof s === 'string' ? replacePrefix(s) : s));
+          } else if (val && typeof val === 'object') {
+            newVal[f] = renameObjKeys(val);
+          }
+        }
+
+        newSw[newKey] = newVal;
+      }
+
+      updatedNode = {
+        ...updatedNode,
+        meta: {
+          ...updatedNode.meta,
+          originalComputer: {
+            ...updatedNode.meta.originalComputer,
+            idn: newId,
+            installed_software: newSw,
+          },
+        },
+      };
+    }
+
+    // Update credential stored_at references
+    if (
+      updatedNode.meta?.originalCredential?.stored_at &&
+      Array.isArray(updatedNode.meta.originalCredential.stored_at)
+    ) {
+      updatedNode = {
+        ...updatedNode,
+        meta: {
+          ...updatedNode.meta,
+          originalCredential: {
+            ...updatedNode.meta.originalCredential,
+            stored_at: updatedNode.meta.originalCredential.stored_at.map((loc: string) =>
+              typeof loc === 'string' ? replacePrefix(loc) : loc,
+            ),
+          },
+        },
+      };
     }
 
     return updatedNode;
