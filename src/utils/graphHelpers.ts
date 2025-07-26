@@ -308,6 +308,39 @@ export function renameComputer(
   const escapedOldUserId = oldUserNodeId.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
   const userRegex = new RegExp(escapedOldUserId, 'g');
 
+  const renameNestedKeys = (obj: any): any => {
+    if (!obj || typeof obj !== 'object') return obj;
+    const renamed: Record<string, any> = {};
+    for (const [k, v] of Object.entries(obj)) {
+      const nk = k.startsWith(oldId) ? newId + k.slice(oldId.length) : k;
+      renamed[nk] = v;
+    }
+    return renamed;
+  };
+
+  const updateSoftwareMeta = (sw: any): any => {
+    if (!sw || typeof sw !== 'object') return sw;
+    const newVal: any = { ...sw };
+    if (typeof newVal.computer_idn === 'string' && newVal.computer_idn.startsWith(oldId)) {
+      newVal.computer_idn = newId + newVal.computer_idn.slice(oldId.length);
+    }
+    if (Array.isArray(newVal.provides_user_services)) {
+      newVal.provides_user_services = newVal.provides_user_services.map((sid: string) =>
+        sid.startsWith(oldId) ? newId + sid.slice(oldId.length) : sid
+      );
+    } else {
+      newVal.provides_user_services = renameNestedKeys(newVal.provides_user_services);
+    }
+    if (Array.isArray(newVal.provides_network_services)) {
+      newVal.provides_network_services = newVal.provides_network_services.map((sid: string) =>
+        sid.startsWith(oldId) ? newId + sid.slice(oldId.length) : sid
+      );
+    } else {
+      newVal.provides_network_services = renameNestedKeys(newVal.provides_network_services);
+    }
+    return newVal;
+  };
+
   const updatedNodes = graphData.nodes.map((n) => {
     let updatedNode: NodeType = { ...n };
 
@@ -315,13 +348,20 @@ export function renameComputer(
     if (n.id === oldId) {
       updatedNode = { ...n, id: newId };
       if (updatedNode.meta?.originalComputer) {
+        const comp = updatedNode.meta.originalComputer;
+        const newSw: Record<string, any> = {};
+        for (const [swKey, swVal] of Object.entries(comp.installed_software || {})) {
+          const nk = swKey.startsWith(oldId) ? newId + swKey.slice(oldId.length) : swKey;
+          newSw[nk] = updateSoftwareMeta(swVal);
+        }
         updatedNode = {
           ...updatedNode,
           meta: {
             ...updatedNode.meta,
             originalComputer: {
-              ...updatedNode.meta.originalComputer,
+              ...comp,
               idn: newId,
+              installed_software: newSw,
             },
           },
         };
@@ -336,6 +376,14 @@ export function renameComputer(
     // Rename software nodes installed on the computer
     if (n.type === 'software' && n.id.startsWith(`${oldId}>`)) {
       updatedNode = { ...n, id: n.id.replace(idRegex, newId) };
+      if (updatedNode.meta) {
+        if (typeof updatedNode.meta.computer_idn === 'string') {
+          updatedNode.meta.computer_idn = updatedNode.meta.computer_idn.replace(idRegex, newId);
+        }
+        if (updatedNode.meta.originalSoftware?.computer_idn) {
+          updatedNode.meta.originalSoftware.computer_idn = updatedNode.meta.originalSoftware.computer_idn.replace(idRegex, newId);
+        }
+      }
     }
 
     // Rename service and user-service nodes referencing the computer or software
@@ -351,6 +399,12 @@ export function renameComputer(
         ...updatedNode,
         meta: { ...updatedNode.meta, computer_idn: updatedNode.meta.computer_idn.replace(idRegex, newId) },
       };
+    }
+
+    if ((n.type === 'key' || n.type === 'lock') && updatedNode.meta?.originalCredential?.stored_at) {
+      updatedNode.meta.originalCredential.stored_at = updatedNode.meta.originalCredential.stored_at.map((loc: string) =>
+        typeof loc === 'string' ? loc.replace(idRegex, newId) : loc
+      );
     }
 
     return updatedNode;

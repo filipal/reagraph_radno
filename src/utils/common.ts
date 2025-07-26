@@ -1,5 +1,9 @@
 import type { GraphData, NodeType, EdgeType } from '../types';
 
+export function replacePrefix(value: string, oldPrefix: string, newPrefix: string): string {
+  return value.startsWith(oldPrefix) ? newPrefix + value.slice(oldPrefix.length) : value;
+}
+
 function edgeExists(edges: EdgeType[], source: string, target: string) {
   return edges.some(e => e.source === source && e.target === target);
 }

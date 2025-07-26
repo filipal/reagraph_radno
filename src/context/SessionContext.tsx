@@ -18,6 +18,7 @@ import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import type { GraphData, FileItem, Computer } from '../types';
 import { useState } from 'react';
+import { replacePrefix } from '../utils/common';
 
 // Type describing the structure of the available data in the context
 type SessionContextType = {
@@ -107,7 +108,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
             if (!obj || typeof obj !== 'object') return obj;
             const renamed: Record<string, any> = {};
             for (const [k, v] of Object.entries(obj)) {
-              const nk = k.startsWith(oldId) ? newId + k.slice(oldId.length) : k;
+              const nk = replacePrefix(k, oldId, newId);
               renamed[nk] = v;
             }
             return renamed;
@@ -115,7 +116,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
           if (Array.isArray(newVal.provides_user_services)) {
             newVal.provides_user_services = newVal.provides_user_services.map((id: string) =>
-              id.startsWith(oldId) ? newId + id.slice(oldId.length) : id,
+              replacePrefix(id, oldId, newId),
             );
           } else {
             newVal.provides_user_services = renameNestedKeys(newVal.provides_user_services);
@@ -123,10 +124,39 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
           if (Array.isArray(newVal.provides_network_services)) {
             newVal.provides_network_services = newVal.provides_network_services.map((id: string) =>
-              id.startsWith(oldId) ? newId + id.slice(oldId.length) : id,
+              replacePrefix(id, oldId, newId),
             );
           } else {
             newVal.provides_network_services = renameNestedKeys(newVal.provides_network_services);
+          }
+
+          const renameArray = (arr: any[]) =>
+            arr.map(v => (typeof v === 'string' ? replacePrefix(v, oldId, newId) : v));
+
+          if (Array.isArray(newVal.accepts_credentials)) {
+            newVal.accepts_credentials = renameArray(newVal.accepts_credentials);
+          }
+          if (Array.isArray(newVal.local_dependencies)) {
+            newVal.local_dependencies = renameArray(newVal.local_dependencies);
+          }
+          if (Array.isArray(newVal.network_dependencies)) {
+            newVal.network_dependencies = renameArray(newVal.network_dependencies);
+          }
+          if (Array.isArray(newVal.network_clients)) {
+            newVal.network_clients = renameArray(newVal.network_clients);
+          }
+          if (Array.isArray(newVal.network_servers)) {
+            newVal.network_servers = renameArray(newVal.network_servers);
+          }
+          if (Array.isArray(newVal.installed_combination)) {
+            newVal.installed_combination = newVal.installed_combination.map((comb: any) => {
+              if (Array.isArray(comb) && typeof comb[0] === 'string') {
+                comb[0] = replacePrefix(comb[0], oldId, newId);
+              } else if (typeof comb === 'string') {
+                comb = replacePrefix(comb, oldId, newId);
+              }
+              return comb;
+            });
           }
 
           newSw[newKey] = newVal;
@@ -148,21 +178,18 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
       updated.computers = updatedComputers;
 
-      const replacePrefix = (val: string): string =>
-        val.startsWith(oldId) ? newId + val.slice(oldId.length) : val;
-
       const renameServiceObjects = (obj: any) => {
         if (!obj || typeof obj !== 'object') return obj;
         const renamed: Record<string, any> = {};
         for (const [key, value] of Object.entries(obj)) {
-          const newKey = replacePrefix(key);
+          const newKey = replacePrefix(key, oldId, newId);
           const newVal: any = typeof value === 'object' && value !== null ? { ...value } : value;
           if (newVal) {
             if (typeof newVal.software_idn === 'string') {
-              newVal.software_idn = replacePrefix(newVal.software_idn);
+              newVal.software_idn = replacePrefix(newVal.software_idn, oldId, newId);
             }
             if (typeof newVal.computer_idn === 'string') {
-              newVal.computer_idn = replacePrefix(newVal.computer_idn);
+              newVal.computer_idn = replacePrefix(newVal.computer_idn, oldId, newId);
             }
           }
           renamed[newKey] = newVal;
@@ -177,31 +204,52 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         updated.user_services = renameServiceObjects(updated.user_services);
       }
 
-      // ----- update credentials stored_at -----
+      // ----- update credentials -----
       if (updated.credentials) {
-        for (const cred of Object.values(updated.credentials) as any[]) {
+        const renamedCreds: Record<string, any> = {};
+        for (const [cKey, cVal] of Object.entries(updated.credentials)) {
+          const newKey = replacePrefix(cKey, oldId, newId);
+          const cred: any = { ...(cVal as any) };
+          if (typeof cred.idn === 'string') {
+            cred.idn = replacePrefix(cred.idn, oldId, newId);
+          }
           if (Array.isArray(cred.stored_at)) {
             cred.stored_at = cred.stored_at.map((loc: string) =>
-              typeof loc === 'string' ? replacePrefix(loc) : loc,
+              typeof loc === 'string' ? replacePrefix(loc, oldId, newId) : loc,
             );
           }
+          if (Array.isArray(cred.linked_software)) {
+            cred.linked_software = cred.linked_software.map((sid: string) =>
+              typeof sid === 'string' ? replacePrefix(sid, oldId, newId) : sid,
+            );
+          }
+          renamedCreds[newKey] = cred;
         }
+        updated.credentials = renamedCreds;
       }
 
       // ----- update firewall rules -----
       if (updated.firewall_rules) {
-        for (const rule of Object.values(updated.firewall_rules) as any[]) {
+        const renamedRules: Record<string, any> = {};
+        for (const [rKey, rVal] of Object.entries(updated.firewall_rules)) {
+          const newKey = replacePrefix(rKey, oldId, newId);
+          const rule: any = { ...(rVal as any) };
+          if (typeof rule.idn === 'string') {
+            rule.idn = replacePrefix(rule.idn, oldId, newId);
+          }
           if (Array.isArray(rule.from_objects)) {
             rule.from_objects = rule.from_objects.map((obj: string) =>
-              typeof obj === 'string' ? replacePrefix(obj) : obj,
+              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
             );
           }
           if (Array.isArray(rule.to_objects)) {
             rule.to_objects = rule.to_objects.map((obj: string) =>
-              typeof obj === 'string' ? replacePrefix(obj) : obj,
+              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
             );
           }
+          renamedRules[newKey] = rule;
         }
+        updated.firewall_rules = renamedRules;
       }
       return updated;
     });
