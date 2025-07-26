@@ -348,22 +348,30 @@ export function renameComputer(
     // Rename the computer node itself
     if (n.id === oldId) {
       updatedNode = { ...n, id: newId };
-      if (updatedNode.meta?.originalComputer) {
-        const comp = updatedNode.meta.originalComputer;
+      if (n.meta?.originalComputer) {
+        const original = n.meta.originalComputer;
         const newSw: Record<string, any> = {};
-        for (const [swKey, swVal] of Object.entries(comp.installed_software || {})) {
+        for (const [swKey, swVal] of Object.entries(original.installed_software || {})) {
           const nk = swKey.startsWith(oldId) ? newId + swKey.slice(oldId.length) : swKey;
           newSw[nk] = updateSoftwareMeta(swVal);
         }
         updatedNode = {
           ...updatedNode,
           meta: {
-            ...updatedNode.meta,
+            ...(updatedNode.meta ?? {}),
             originalComputer: {
-              ...comp,
+              ...original,
               idn: newId,
               installed_software: newSw,
             },
+          },
+        };
+      } else {
+        updatedNode = {
+          ...updatedNode,
+          meta: {
+            ...(updatedNode.meta ?? {}),
+            originalComputer: { idn: newId },
           },
         };
       }
@@ -407,9 +415,8 @@ export function renameComputer(
 
     // Rename installed software keys and internal references for all computers
     if (n.type === 'computer' && n.meta?.originalComputer?.installed_software) {
-      // Add this check to ensure meta exists
-      if (!updatedNode.meta) return updatedNode;
-      const swEntries = Object.entries(n.meta.originalComputer.installed_software);
+      const original = n.meta.originalComputer;
+      const swEntries = Object.entries(original.installed_software ?? {});
       const newSw: Record<string, any> = {};
 
       const renameObjKeys = (obj: any) => {
@@ -452,9 +459,9 @@ export function renameComputer(
       updatedNode = {
         ...updatedNode,
         meta: {
-          ...updatedNode.meta,
+          ...(updatedNode.meta ?? {}),
           originalComputer: {
-            ...updatedNode.meta.originalComputer,
+            ...(updatedNode.meta?.originalComputer ?? { idn: newId }),
             idn: newId,
             installed_software: newSw,
           },
