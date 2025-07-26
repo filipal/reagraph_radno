@@ -383,7 +383,9 @@ export function renameComputer(
     }
 
     // Rename software nodes installed on the computer
-    if (n.type === 'software' && n.id.startsWith(`${oldId}>`)) {
+    const softwareIdPrefix =
+      n.id.startsWith(`${oldId}>`) || n.id.startsWith(`${oldId}#`);
+    if (n.type === 'software' && softwareIdPrefix) {
       updatedNode = { ...n, id: n.id.replace(idRegex, newId) };
       if (updatedNode.meta) {
         if (typeof updatedNode.meta.computer_idn === 'string') {

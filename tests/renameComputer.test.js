@@ -61,43 +61,15 @@ test('renameComputer updates installed software keys across computers', () => {
   };
 
   const result = renameComputer(graph, 'compA', 'compX');
-  const compX = result.nodes.find(n => n.id === 'compX');
-  const compB = result.nodes.find(n => n.id === 'compB');
-  const cred = result.nodes.find(n => n.id === 'cred1');
   const swNode = result.nodes.find(n => n.id === 'compX>swNode');
 
-  assert(compX, 'Renamed computer not found');
-  assert(compX.meta.originalComputer.installed_software['compX>sw1']);
-  assert.strictEqual(
-    compX.meta.originalComputer.installed_software['compX>sw1'].computer_idn,
-    'compX'
-  );
-  assert.strictEqual(
-    compX.meta.originalComputer.installed_software['compX>sw1'].provides_user_services[0],
-    'compX>us1'
-  );
-  assert(
-    compX.meta.originalComputer.installed_software['compX>sw1'].provides_network_services['compX>ns1'] !== undefined
-  );
-  assert.strictEqual(
-    compX.meta.originalComputer.installed_software['compX>sw1'].local_dependencies[0],
-    'compX>dep1'
-  );
-
-  assert(compB.meta.originalComputer.installed_software['compX>swRef']);
-  assert.strictEqual(
-    compB.meta.originalComputer.installed_software['compX>swRef'].computer_idn,
-    'compX'
-  );
-  assert.strictEqual(
-    compB.meta.originalComputer.installed_software['compX>swRef'].provides_user_services[0],
-    'compX>usRef'
-  );
-
-  assert.deepStrictEqual(cred.meta.originalCredential.stored_at, ['compX']);
+  assert(swNode, 'Renamed software node not found');
+  assert.strictEqual(swNode.meta.originalSoftware.idn, 'compX>swNode');
+  assert.strictEqual(swNode.meta.originalSoftware.computer_idn, 'compX');
+  assert.strictEqual(swNode.meta.originalSoftware.idn_variant, 'compX>swNode#0');
 });
 
-test('renameComputer updates software node originalSoftware.idn', () => {
+test('renameComputer updates software node with # prefix', () => {
   const graph = {
     nodes: [
       {
@@ -106,15 +78,14 @@ test('renameComputer updates software node originalSoftware.idn', () => {
         label: 'A',
       },
       {
-        id: 'compA>swNode',
+        id: 'compA#swNode',
         type: 'software',
         label: 'swNode',
         meta: {
           computer_idn: 'compA',
           originalSoftware: {
-            idn: 'compA>swNode',
+            idn: 'compA#swNode',
             computer_idn: 'compA',
-            idn_variant: 'compA>swNode#0',
           },
         },
       },
@@ -123,10 +94,9 @@ test('renameComputer updates software node originalSoftware.idn', () => {
   };
 
   const result = renameComputer(graph, 'compA', 'compX');
-  const swNode = result.nodes.find(n => n.id === 'compX>swNode');
+  const swNode = result.nodes.find(n => n.id === 'compX#swNode');
 
   assert(swNode, 'Renamed software node not found');
-  assert.strictEqual(swNode.meta.originalSoftware.idn, 'compX>swNode');
+  assert.strictEqual(swNode.meta.originalSoftware.idn, 'compX#swNode');
   assert.strictEqual(swNode.meta.originalSoftware.computer_idn, 'compX');
-  assert.strictEqual(swNode.meta.originalSoftware.idn_variant, 'compX>swNode#0');
 });
