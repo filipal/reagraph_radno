@@ -131,10 +131,14 @@ export type DetailedData = {
 };
 
 export type FirewallRuleRow = {
-  id: string;
-  from: string[];
-  to: string[];
-  direction: 'in' | 'out' | 'normal'; // 🔁 'in' = Internet → rač., 'out' = rač. → Internet, 'normal' = rač. ↔ rač.
+  id?: string;
+  idn?: string;
+  from?: string[];
+  to?: string[];
+  from_objects?: string[];
+  to_objects?: string[];
+  direction?: 'in' | 'out' | 'normal'; // 🔁 'in' = Internet → rač., 'out' = rač. → Internet, 'normal' = rač. ↔ rač.
+  allow?: boolean;
 };
 
 export interface Credential {

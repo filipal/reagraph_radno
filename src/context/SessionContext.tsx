@@ -16,7 +16,13 @@
 
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
-import type { GraphData, FileItem, Computer } from '../types';
+import type {
+  GraphData,
+  FileItem,
+  Computer,
+  Credential,
+  FirewallRuleRow,
+} from '../types';
 import { useState } from 'react';
 import { replacePrefix } from '../utils/common';
 
@@ -217,24 +223,27 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       }
 
         // ----- update credentials -----
-      if (updated.credentials) {
+       if (updated.credentials) {
         const newCreds: Record<string, any> = {};
-        for (const [cKey, cVal] of Object.entries(updated.credentials)) {
-          if (typeof cVal.idn === 'string') {
-            cVal.idn = replacePrefix(cVal.idn, oldId, newId);
+        for (const [cKey, cVal] of Object.entries(
+          updated.credentials as Record<string, Credential>,
+        ) as [string, Credential][]) {
+          const cred = cVal;
+          if (typeof cred.idn === 'string') {
+            cred.idn = replacePrefix(cred.idn, oldId, newId);
           }
-          if (Array.isArray(cVal.stored_at)) {
-            cVal.stored_at = cVal.stored_at.map((loc: string) =>
+          if (Array.isArray(cred.stored_at)) {
+            cred.stored_at = cred.stored_at.map((loc: string) =>
               typeof loc === 'string' ? replacePrefix(loc, oldId, newId) : loc,
             );
           }
-          if (Array.isArray(cVal.linked_software)) {
-            cVal.linked_software = cVal.linked_software.map((sid: string) =>
+          if (Array.isArray(cred.linked_software)) {
+            cred.linked_software = cred.linked_software.map((sid: string) =>
               typeof sid === 'string' ? replacePrefix(sid, oldId, newId) : sid,
             );
           }
           const newKey = replacePrefix(cKey, oldId, newId);
-          newCreds[newKey] = cVal;
+          newCreds[newKey] = cred;
         }
         updated.credentials = newCreds;
       }
@@ -242,22 +251,25 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
       // ----- update firewall rules -----
       if (updated.firewall_rules) {
         const newRules: Record<string, any> = {};
-        for (const [rKey, rVal] of Object.entries(updated.firewall_rules)) {
-          if (typeof rVal.idn === 'string') {
-            rVal.idn = replacePrefix(rVal.idn, oldId, newId);
+        for (const [rKey, rVal] of Object.entries(
+          updated.firewall_rules as Record<string, FirewallRuleRow>,
+        ) as [string, FirewallRuleRow][]) {
+          const rule = rVal;
+          if (typeof rule.idn === 'string') {
+            rule.idn = replacePrefix(rule.idn, oldId, newId);
           }
-          if (Array.isArray(rVal.from_objects)) {
-            rVal.from_objects = rVal.from_objects.map((obj: string) =>
+          if (Array.isArray(rule.from_objects)) {
+            rule.from_objects = rule.from_objects.map((obj: string) =>
               typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
             );
           }
-          if (Array.isArray(rVal.to_objects)) {
-            rVal.to_objects = rVal.to_objects.map((obj: string) =>
+          if (Array.isArray(rule.to_objects)) {
+            rule.to_objects = rule.to_objects.map((obj: string) =>
               typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
             );
           }
           const newKey = replacePrefix(rKey, oldId, newId);
-          newRules[newKey] = rVal;
+          newRules[newKey] = rule;
         }
         updated.firewall_rules = newRules;
       }
