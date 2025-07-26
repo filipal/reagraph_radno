@@ -80,18 +80,27 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-    const renameComputerInJson = (oldId: string, newId: string) => {
+  const renameComputerInJson = (oldId: string, newId: string) => {
     setEditableJson((prev: any) => {
       if (!prev?.computers?.[oldId]) return prev;
 
       const updated = { ...prev };
 
-      // ----- update computer entry -----
-      const { [oldId]: oldComp, ...otherComps } = prev.computers;
-      const renamedComp = { ...oldComp, idn: newId };
+      // Keep direct reference to the old computer object so that
+      // existing references (e.g. nodes) see the mutations.
+      const oldComp = prev.computers[oldId] as Computer;
 
-      // Rename installed software entries for all computers
-      const updateSoftware = (comp: Computer): Computer => {
+      // Clone mapping to allow key replacement without mutating prev.computers
+      const otherComps: Record<string, any> = { ...prev.computers };
+      delete otherComps[oldId];
+
+      // ----- rename computer id -----
+      oldComp.idn = newId;
+      
+      // Rename installed software entries for all computers.
+      // When mutateInPlace is true the passed object is modified directly so
+      // existing references remain valid.
+      const updateSoftware = (comp: Computer, mutateInPlace = false): Computer => {
         if (!comp?.installed_software) return comp;
         const newSw: Record<string, any> = {};
         for (const [swKey, swVal] of Object.entries(comp.installed_software)) {
@@ -161,22 +170,25 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
           newSw[newKey] = newVal;
         }
+        if (mutateInPlace) {
+          comp.installed_software = newSw;
+          return comp;
+        }
         return { ...comp, installed_software: newSw };
       };
 
-      // update renamed computer itself
-      const updatedRenamedComp = updateSoftware(renamedComp as Computer);
-
-      // update all other computers for software referencing the old id
-      const updatedComputers: Record<string, any> = {
-        ...otherComps,
-        [newId]: updatedRenamedComp,
-      };
-      for (const [cid, comp] of Object.entries(otherComps)) {
-        updatedComputers[cid] = updateSoftware(comp as Computer);
+      // Update renamed computer itself and all other computers in place
+      updateSoftware(oldComp, true);
+      for (const comp of Object.values(otherComps)) {
+        updateSoftware(comp as Computer, true);
       }
 
-      updated.computers = updatedComputers;
+      // Move the mutated computer under the new key and remove the old one
+      const mutatedComputers: Record<string, any> = { ...prev.computers };
+      delete mutatedComputers[oldId];
+      mutatedComputers[newId] = oldComp;
+
+      updated.computers = mutatedComputers;
 
       const renameServiceObjects = (obj: any) => {
         if (!obj || typeof obj !== 'object') return obj;
@@ -204,52 +216,50 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         updated.user_services = renameServiceObjects(updated.user_services);
       }
 
-      // ----- update credentials -----
+        // ----- update credentials -----
       if (updated.credentials) {
-        const renamedCreds: Record<string, any> = {};
+        const newCreds: Record<string, any> = {};
         for (const [cKey, cVal] of Object.entries(updated.credentials)) {
-          const newKey = replacePrefix(cKey, oldId, newId);
-          const cred: any = { ...(cVal as any) };
-          if (typeof cred.idn === 'string') {
-            cred.idn = replacePrefix(cred.idn, oldId, newId);
+          if (typeof cVal.idn === 'string') {
+            cVal.idn = replacePrefix(cVal.idn, oldId, newId);
           }
-          if (Array.isArray(cred.stored_at)) {
-            cred.stored_at = cred.stored_at.map((loc: string) =>
+          if (Array.isArray(cVal.stored_at)) {
+            cVal.stored_at = cVal.stored_at.map((loc: string) =>
               typeof loc === 'string' ? replacePrefix(loc, oldId, newId) : loc,
             );
           }
-          if (Array.isArray(cred.linked_software)) {
-            cred.linked_software = cred.linked_software.map((sid: string) =>
+          if (Array.isArray(cVal.linked_software)) {
+            cVal.linked_software = cVal.linked_software.map((sid: string) =>
               typeof sid === 'string' ? replacePrefix(sid, oldId, newId) : sid,
             );
           }
-          renamedCreds[newKey] = cred;
+          const newKey = replacePrefix(cKey, oldId, newId);
+          newCreds[newKey] = cVal;
         }
-        updated.credentials = renamedCreds;
+        updated.credentials = newCreds;
       }
 
       // ----- update firewall rules -----
       if (updated.firewall_rules) {
-        const renamedRules: Record<string, any> = {};
+        const newRules: Record<string, any> = {};
         for (const [rKey, rVal] of Object.entries(updated.firewall_rules)) {
+          if (typeof rVal.idn === 'string') {
+            rVal.idn = replacePrefix(rVal.idn, oldId, newId);
+          }
+          if (Array.isArray(rVal.from_objects)) {
+            rVal.from_objects = rVal.from_objects.map((obj: string) =>
+              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
+            );
+          }
+          if (Array.isArray(rVal.to_objects)) {
+            rVal.to_objects = rVal.to_objects.map((obj: string) =>
+              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
+            );
+          }
           const newKey = replacePrefix(rKey, oldId, newId);
-          const rule: any = { ...(rVal as any) };
-          if (typeof rule.idn === 'string') {
-            rule.idn = replacePrefix(rule.idn, oldId, newId);
-          }
-          if (Array.isArray(rule.from_objects)) {
-            rule.from_objects = rule.from_objects.map((obj: string) =>
-              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
-            );
-          }
-          if (Array.isArray(rule.to_objects)) {
-            rule.to_objects = rule.to_objects.map((obj: string) =>
-              typeof obj === 'string' ? replacePrefix(obj, oldId, newId) : obj,
-            );
-          }
-          renamedRules[newKey] = rule;
+          newRules[newKey] = rVal;
         }
-        updated.firewall_rules = renamedRules;
+        updated.firewall_rules = newRules;
       }
       return updated;
     });
