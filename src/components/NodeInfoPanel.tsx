@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
 import type { NodeType, EdgeType } from '../types';
 import { parseCpe, getSoftwareUser, getSoftwareComputer, getServiceProvider, parseSoftwareIdFromUserServiceId } from '../utils/graphHelpers';
-import { getNodeOriginalData, cleanUserId, cleanDuplicateLabel } from '../utils/graphHelpers';
+import { getNodeOriginalData, cleanUserId } from '../utils/graphHelpers';
 import { getConnectedNodes } from '../utils/common';
 import styles from './GraphCanvas.module.scss';
 
@@ -19,9 +18,6 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = ({
   mappedNodes
 }) => {
 
-
-  const originalData = getNodeOriginalData(selectedNode);
-
   return (
     <div className={styles.nodePanel}>
       <h3>{selectedNode.label || (selectedNode.type === 'key' ? 'Key' : selectedNode.type === 'lock' ? 'Lock' : selectedNode.id)}</h3>
@@ -30,7 +26,7 @@ const NodeInfoPanel: React.FC<NodeInfoPanelProps> = ({
         <span className={styles.nodeId}>
           {['user', 'computer'].includes(selectedNode.type)
             ? selectedNode.id.replace(/^user-/, '')
-            : originalData.id || selectedNode.id}
+            : selectedNode.id}
         </span>
       </p>
       <p><strong>TYPE:</strong> {selectedNode.type}</p>
