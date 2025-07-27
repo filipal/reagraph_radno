@@ -170,10 +170,8 @@ export function filterCredentialsGraph(
 
     const normalizedLabel = getBinaryLabel(installedSw) || swId;
 
-    // ✅ Koristi računalo gdje je credential fizički pohranjen
-    const realStoredCompId = storedAt[0];
-    const realStoredComp = inputJson.computers?.[realStoredCompId];
-    const networkIds = realStoredComp?.network_idn || [];
+    // ✅ Koristi računalo na kojem je softver instaliran
+    const networkIds = comp.network_idn || [];
     const swGroup = networkIds.length > 0 ? `network.internal.${networkIds.join('_')}` : 'no-network';
       
       if (!nodeIndex[swId]) {
