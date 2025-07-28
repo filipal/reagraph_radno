@@ -267,7 +267,53 @@ export function filterCredentialsGraph(
       }
     }
   }
+  
+  for (const node of nodes) {
+    if (node.type === 'lock') {
+      const softwareGroups = new Set<string>();
+      for (const edge of edges) {
+        const srcId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+        const tgtId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+        // lock -> software (credential-software edge)
+        if (srcId === node.id && edge.type === 'credential-software') {
+          const swNode = nodeIndex[tgtId];
+          if (swNode && swNode.type === 'software') {
+            softwareGroups.add(swNode.group || '');
+          }
+        }
+      }
+      if (softwareGroups.size > 1) {
+        node.group = '';
+      }
+    }
     
+    if (node.type === 'key') {
+      // Nova logika za key
+      // Pronađi sva računala na kojima je credential (stored_at)
+      const credNode = node;
+      const credStoredAt = credNode.meta?.originalCredential?.stored_at || [];
+      // Pronađi sve software na koje je key povezan
+      let hasSoftwareOnOtherComputer = false;
+      for (const edge of edges) {
+        const srcId = typeof edge.source === 'string' ? edge.source : edge.source.id;
+        const tgtId = typeof edge.target === 'string' ? edge.target : edge.target.id;
+        if (srcId === node.id && edge.type === 'credential-software') {
+          const swNode = nodeIndex[tgtId];
+          if (swNode && swNode.type === 'software') {
+            // Dohvati računalo na kojem je software
+            const swCompId = swNode.id.split('>')[0];
+            if (!credStoredAt.includes(swCompId)) {
+              hasSoftwareOnOtherComputer = true;
+              break;
+            }
+          }
+        }
+      }
+      if (hasSoftwareOnOtherComputer) {
+        node.group = '';
+      }
+    }
+  }
   // 🔹 Filter final output
   const filtered = filterGraphCredentialsCustom({ nodes, edges }, selectedGroup);
   return filtered;
