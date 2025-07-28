@@ -286,13 +286,20 @@ export function filterCredentialsGraph(
         node.group = '';
       }
     }
-    
+
     if (node.type === 'key') {
-      // Nova logika za key
       // Pronađi sva računala na kojima je credential (stored_at)
       const credNode = node;
       const credStoredAt = credNode.meta?.originalCredential?.stored_at || [];
-      // Pronađi sve software na koje je key povezan
+      const storedNetworks = new Set<string>();
+      for (const compId of credStoredAt) {
+        const comp = inputJson.computers?.[compId];
+        const netIds = comp?.network_idn || [];
+        for (const nId of netIds) {
+          storedNetworks.add(String(nId));
+        }
+      }
+      // Inspect connected software and compare its computer's networks
       let hasSoftwareOnOtherComputer = false;
       for (const edge of edges) {
         const srcId = typeof edge.source === 'string' ? edge.source : edge.source.id;
@@ -300,14 +307,19 @@ export function filterCredentialsGraph(
         if (srcId === node.id && edge.type === 'credential-software') {
           const swNode = nodeIndex[tgtId];
           if (swNode && swNode.type === 'software') {
-            // Dohvati računalo na kojem je software
+
             const swCompId = swNode.id.split('>')[0];
-            if (!credStoredAt.includes(swCompId)) {
-              hasSoftwareOnOtherComputer = true;
-              break;
+            const swComp = inputJson.computers?.[swCompId];
+            const swNetworks = swComp?.network_idn || [];
+            for (const nId of swNetworks) {
+              if (!storedNetworks.has(String(nId))) {
+                hasSoftwareOnOtherComputer = true;
+                break;
+              }
             }
           }
         }
+        if (hasSoftwareOnOtherComputer) break;
       }
       if (hasSoftwareOnOtherComputer) {
         node.group = '';
