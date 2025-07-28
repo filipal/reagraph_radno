@@ -24,7 +24,7 @@ export function getDynamicLayoutConfig(
         : groupNodeCount > 30
           ? 200
           : 200)
-    : 1000;
+    : 1500;
 
   const dynamicCollideRadius = selectedGroup
     ? (groupNodeCount > 50
@@ -32,7 +32,7 @@ export function getDynamicLayoutConfig(
         : groupNodeCount > 20
           ? 1
           : 150)
-    : 1000;
+    : 1200;
 
   const dynamicNodeStrength = selectedGroup
     ? (groupNodeCount > 50
